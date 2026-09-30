@@ -51,12 +51,12 @@ private val PURPLE = Color(0xFF7A4DB4)
 private val GREY = Color(0xFF71828D)
 
 private enum class Scenario(val label: String) {
-    NORMAL("Normal"), LOCAL("Local deformation"), PROGRESSIVE("Progressive subsidence"), SENSOR("Sensor failure")
+    NORMAL("Live random feed"), LOCAL("Local deformation"), PROGRESSIVE("Progressive subsidence"), SENSOR("Sensor failure")
 }
 private enum class Risk(val label: String) { STABLE("STABLE"), WATCH("WATCH"), DEVELOPING("DEVELOPING"), HIGH("HIGH"), CRITICAL("CRITICAL") }
 private data class Node(val id:String,val row:Int,val col:Int,val dev:Double,val vel:Double,val crack:Double,val vib:Double,val battery:Int,val rssi:Int,val suspect:Boolean,val coherent:Boolean)
 private data class Event(val time:Long,val severity:String,val title:String,val detail:String,val nodes:String,val ack:Boolean=false)
-private data class Snapshot(val nodes:List<Node>,val risk:Risk,val score:Int,val coherence:Double,val pattern:String,val confidence:Int,val alerts:List<Event>,val tick:Int,val unsynced:Int,val online:Boolean,val scenario:Scenario,val avgBattery:Int)
+private data class Snapshot(val nodes:List<Node>,val risk:Risk,val score:Int,val coherence:Double,val pattern:String,val confidence:Int,val alerts:List<Event>,val tick:Int,val unsynced:Int,val online:Boolean,val scenario:Scenario,val avgBattery:Int,val temperature:Double,val humidity:Double,val packets:Int,val maxVelocity:Double,val maxVibration:Double,val maxDeviation:Double,val history:List<Int>)
 
 private class MineEngine {
     private var scenario=Scenario.NORMAL
@@ -65,8 +65,9 @@ private class MineEngine {
     private var lastRisk=Risk.STABLE
     private var lastAlertTick=-20
     private val events=mutableListOf<Event>()
+    private val scoreHistory=ArrayDeque<Int>()
 
-    fun setScenario(s:Scenario){ scenario=s; tick=0; lastRisk=Risk.STABLE }
+    fun setScenario(s:Scenario){ scenario=s; tick=0; lastRisk=Risk.STABLE; events.clear(); scoreHistory.clear() }
 
     fun step(online:Boolean):Snapshot {
         tick++
@@ -82,9 +83,9 @@ private class MineEngine {
                 Scenario.PROGRESSIVE -> 0.20*tick+0.012*tick*tick
                 else -> 0.0
             }
-            var dev=growth*w+random.nextDouble(-0.15,0.15)
-            var crack=max(0.0,(growth-8)*0.025*w+random.nextDouble(-0.01,0.01))
-            var vib=0.05+random.nextDouble(0.0,0.025)+if(scenario==Scenario.PROGRESSIVE) 0.18*w*min(1.0,tick/45.0) else 0.0
+            var dev=growth*w+random.nextDouble(-1.15,1.15)
+            var crack=max(0.0,(growth-8)*0.025*w+random.nextDouble(-0.02,0.02))
+            var vib=0.05+random.nextDouble(0.0,0.07)+if(scenario==Scenario.PROGRESSIVE) 0.18*w*min(1.0,tick/45.0) else 0.0
             var suspect=false
             if(scenario==Scenario.SENSOR && i==12 && tick>4) {
                 dev=60+random.nextDouble(0.0,30.0)
@@ -94,8 +95,8 @@ private class MineEngine {
             }
             val vel=when(scenario) {
                 Scenario.PROGRESSIVE -> 0.20+0.024*tick
-                Scenario.LOCAL -> 0.45
-                else -> 0.01
+                Scenario.LOCAL -> 0.35+random.nextDouble(0.0,0.18)
+                else -> random.nextDouble(0.01,0.12)
             }
             val coherent=abs(dev)>1.5 && !suspect && scenario!=Scenario.NORMAL
             Node("N%02d".format(i+1),r,c,dev,vel,crack,vib,(96-(tick/80)).coerceAtLeast(45),-62-random.nextInt(0,25),suspect,coherent)
@@ -139,7 +140,12 @@ private class MineEngine {
             events.add(0,Event(System.currentTimeMillis(),"MEDIUM","Sensor integrity warning","N13 disagrees strongly with its neighbours and is excluded from ground risk.","N13"))
         }
         lastRisk=risk
-        return Snapshot(nodes,risk,score,coherent/25.0,pattern,confidence,events.take(30),tick,events.size*25,online,scenario,nodes.map{it.battery}.average().toInt())
+        scoreHistory.addLast(score)
+        while(scoreHistory.size>30) scoreHistory.removeFirst()
+        val temp=27.0+sin(tick/8.0)*0.8+random.nextDouble(-0.35,0.35)
+        val humidity=(58.0+sin(tick/11.0)*4.0+random.nextDouble(-1.5,1.5)).coerceIn(35.0,85.0)
+        val packets=25+random.nextInt(0,12)
+        return Snapshot(nodes,risk,score,coherent/25.0,pattern,confidence,events.take(30),tick,events.size*25,online,scenario,nodes.map{it.battery}.average().toInt(),temp,humidity,packets,maxVel,maxVib,maxDev,scoreHistory.toList())
     }
 }
 
@@ -179,12 +185,13 @@ class MainActivity:ComponentActivity() {
     var tab by remember { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<Int?>(null) }
     var lastPosted by remember { mutableIntStateOf(0) }
+    var running by remember { mutableStateOf(true) }
     val online=rememberNetwork()
 
-    LaunchedEffect(scenario,online) {
+    LaunchedEffect(scenario,online,running) {
         engine.setScenario(scenario)
         lastPosted = 0
-        while (isActive) {
+        while (isActive && running) {
             val next = withContext(Dispatchers.Default) { engine.step(online) }
             snap = next
             if (next.alerts.size > lastPosted && lastPosted > 0) {
@@ -208,14 +215,14 @@ class MainActivity:ComponentActivity() {
                 else {
                     if(s.risk.ordinal>=Risk.HIGH.ordinal) Emergency(s)
                     when(tab) {
-                        0 -> Overview(s){scenario=it}
+                        0 -> Overview(s,{scenario=it},{running=!running})
                         1 -> MapPage(s,selected){selected=it}
                         2 -> AlertsPage(s)
                         3 -> Analytics(s)
                         else -> SystemPage(s){scenario=it}
                     }
                 }
-                Text("SUBSENSE-X Advanced • local simulation • offline-first safety workflow • field calibration required",fontSize=10.sp,color=GREY)
+                Text("SUBSENSE-X Advanced • local simulator • offline-first safety workflow • field calibration required",fontSize=10.sp,color=GREY)
             }
         }
     }
@@ -284,8 +291,65 @@ class MainActivity:ComponentActivity() {
     }
 }
 
-@Composable private fun Overview(s:Snapshot,onScenario:(Scenario)->Unit) {
-    RiskCard(s); Kpis(s); Evidence(s); ScenarioCard(s,onScenario); Events(s.alerts.take(3))
+@Composable private fun Overview(s:Snapshot,onScenario:(Scenario)->Unit,onToggle:()->Unit) {
+    LiveStatus(s,onToggle)
+    RiskCard(s)
+    LiveTelemetry(s)
+    Kpis(s)
+    LiveTrend(s)
+    Evidence(s)
+    ScenarioCard(s,onScenario)
+    Events(s.alerts.take(3))
+}
+
+@Composable private fun LiveStatus(s:Snapshot,onToggle:()->Unit) {
+    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=Color.White)) {
+        Row(Modifier.fillMaxWidth().padding(12.dp),Arrangement.SpaceBetween,Alignment.CenterVertically) {
+            Column {
+                Text("LIVE TELEMETRY STREAM",fontWeight=FontWeight.ExtraBold,fontSize=14.sp)
+                Text("Simulator is generating fresh sensor packets every 1.5 seconds",fontSize=10.sp,color=GREY)
+            }
+            Button(onClick=onToggle,contentPadding=PaddingValues(horizontal=12.dp,vertical=6.dp),colors=ButtonDefaults.buttonColors(containerColor=if(s.tick>0) GREEN else GREY)) {
+                Text(if(s.tick>0) "LIVE" else "START",fontSize=10.sp)
+            }
+        }
+    }
+}
+
+@Composable private fun LiveTelemetry(s:Snapshot) {
+    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=Color.White)) {
+        Column(Modifier.padding(13.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
+            Text("LIVE SENSOR TELEMETRY",fontWeight=FontWeight.ExtraBold)
+            Row(Modifier.fillMaxWidth(),Arrangement.spacedBy(6.dp)) {
+                Metric("MAX DEV","%.2f mm".format(s.maxDeviation),Modifier.weight(1f))
+                Metric("VELOCITY","%.3f".format(s.maxVelocity),Modifier.weight(1f))
+                Metric("VIB","%.2f".format(s.maxVibration),Modifier.weight(1f))
+            }
+            Row(Modifier.fillMaxWidth(),Arrangement.spacedBy(6.dp)) {
+                Metric("TEMP","%.1f°C".format(s.temperature),Modifier.weight(1f))
+                Metric("HUMID","%.1f%%".format(s.humidity),Modifier.weight(1f))
+                Metric("PACKETS","${s.packets}/s",Modifier.weight(1f))
+            }
+            Text("Last packet: ${SimpleDateFormat("HH:mm:ss",Locale.getDefault()).format(Date())}  •  sequence #${s.tick}",fontSize=10.sp,color=GREY)
+        }
+    }
+}
+
+@Composable private fun LiveTrend(s:Snapshot) {
+    Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=Color.White)) {
+        Column(Modifier.padding(13.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
+            Text("LIVE RISK TREND",fontWeight=FontWeight.ExtraBold)
+            Row(Modifier.fillMaxWidth().height(70.dp),horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.Bottom) {
+                s.history.forEach { value ->
+                    Box(Modifier.weight(1f).fillMaxHeight((value.coerceIn(2,100))/100f).background(riskColor(if(value<=20)Risk.STABLE else if(value<=40)Risk.WATCH else if(value<=60)Risk.DEVELOPING else if(value<=80)Risk.HIGH else Risk.CRITICAL),RoundedCornerShape(2.dp)))
+                }
+            }
+            Row(Modifier.fillMaxWidth(),Arrangement.SpaceBetween) {
+                Text("older",fontSize=9.sp,color=GREY)
+                Text("now • ${s.score}/100",fontSize=9.sp,fontWeight=FontWeight.Bold,color=riskColor(s.risk))
+            }
+        }
+    }
 }
 
 @Composable private fun RiskCard(s:Snapshot) {
@@ -456,7 +520,7 @@ class MainActivity:ComponentActivity() {
     Card(Modifier.fillMaxWidth(),colors=CardDefaults.cardColors(containerColor=Color.White)) {
         Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(7.dp)) {
             Text("DEMO / FIELD TEST",fontWeight=FontWeight.ExtraBold)
-            Text("Demonstrate safe operation, real deformation patterns and isolated sensor failure.",fontSize=11.sp,color=GREY)
+            Text("Live random feed is the default. Switch scenarios to demonstrate deformation progression or sensor faults.",fontSize=11.sp,color=GREY)
             Scenario.values().toList().chunked(2).forEach { pair ->
                 Row(Modifier.fillMaxWidth(),Arrangement.spacedBy(7.dp)) {
                     pair.forEach { sc ->
