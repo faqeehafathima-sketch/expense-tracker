@@ -32,6 +32,9 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.*
@@ -180,12 +183,15 @@ class MainActivity:ComponentActivity() {
 
     LaunchedEffect(scenario,online) {
         engine.setScenario(scenario)
-        while(true) {
-            val next=engine.step(online)
-            if(next.alerts.size>lastPosted && lastPosted>0) next.alerts.firstOrNull()?.let { postAlert(it) }
-            lastPosted=next.alerts.size
-            snap=next
-            delay(1000)
+        lastPosted = 0
+        while (isActive) {
+            val next = withContext(Dispatchers.Default) { engine.step(online) }
+            snap = next
+            if (next.alerts.size > lastPosted && lastPosted > 0) {
+                next.alerts.firstOrNull()?.let { postAlert(it) }
+            }
+            lastPosted = next.alerts.size
+            delay(1500)
         }
     }
     val s=snap
