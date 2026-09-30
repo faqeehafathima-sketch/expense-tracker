@@ -1,7 +1,7 @@
 name: Build SUBSENSE-X APK
 on:
   push:
-    branches: [subsensex-build]
+    branches: [subsensex-build, subsensex-build2]
   workflow_dispatch:
 jobs:
   build:
