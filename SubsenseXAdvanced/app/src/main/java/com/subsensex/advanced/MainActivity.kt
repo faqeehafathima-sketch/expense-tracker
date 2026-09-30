@@ -243,16 +243,16 @@ class MainActivity:ComponentActivity() {
             Pill(if(s?.online==true)"ONLINE" else "OFFLINE",if(s?.online==true)GREEN else RED)
         }
         Row(Modifier.fillMaxWidth().padding(top=8.dp),Arrangement.spacedBy(6.dp)) {
-            Metric("NODES","25")
-            Metric("RISK",s?.score?.toString() ?: "--")
-            Metric("BAT",s?.avgBattery?.let{"$it%"} ?: "--")
-            Metric("TICK",s?.tick?.toString() ?: "--")
+            Metric("NODES","25", Modifier.weight(1f))
+            Metric("RISK",s?.score?.toString() ?: "--", Modifier.weight(1f))
+            Metric("BAT",s?.avgBattery?.let{"$it%"} ?: "--", Modifier.weight(1f))
+            Metric("TICK",s?.tick?.toString() ?: "--", Modifier.weight(1f))
         }
     }
 }
 
-@Composable private fun Metric(a:String,b:String) {
-    Column(Modifier.weight(1f).background(BG,RoundedCornerShape(8.dp)).padding(7.dp)) {
+@Composable private fun Metric(a:String,b:String, modifier: Modifier = Modifier) {
+    Column(modifier.background(BG,RoundedCornerShape(8.dp)).padding(7.dp)) {
         Text(a,fontSize=8.sp,color=GREY,fontWeight=FontWeight.Bold)
         Text(b,fontSize=12.sp,fontWeight=FontWeight.ExtraBold,color=INK)
     }
@@ -312,15 +312,15 @@ class MainActivity:ComponentActivity() {
 
 @Composable private fun Kpis(s:Snapshot) {
     Row(Modifier.fillMaxWidth(),Arrangement.spacedBy(7.dp)) {
-        K("COHERENT",s.nodes.count{it.coherent}.toString(),GREEN)
-        K("SUSPECT",s.nodes.count{it.suspect}.toString(),PURPLE)
-        K("ACTIVE",s.alerts.count{!it.ack}.toString(),RED)
-        K("QUEUE",s.unsynced.toString(),BLUE)
+        K("COHERENT",s.nodes.count{it.coherent}.toString(),GREEN, Modifier.weight(1f))
+        K("SUSPECT",s.nodes.count{it.suspect}.toString(),PURPLE, Modifier.weight(1f))
+        K("ACTIVE",s.alerts.count{!it.ack}.toString(),RED, Modifier.weight(1f))
+        K("QUEUE",s.unsynced.toString(),BLUE, Modifier.weight(1f))
     }
 }
 
-@Composable private fun K(a:String,b:String,c:Color) {
-    Card(Modifier.weight(1f),colors=CardDefaults.cardColors(containerColor=Color.White)) {
+@Composable private fun K(a:String,b:String,c:Color, modifier: Modifier = Modifier) {
+    Card(modifier,colors=CardDefaults.cardColors(containerColor=Color.White)) {
         Column(Modifier.padding(9.dp)) {
             Text(a,fontSize=8.sp,color=GREY,fontWeight=FontWeight.Bold)
             Text(b,fontSize=18.sp,color=c,fontWeight=FontWeight.ExtraBold)
