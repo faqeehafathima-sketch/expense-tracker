@@ -1,26 +1,30 @@
 # Expense Tracker
 
-A simple command-line expense tracker built with **Python, Pandas, and Matplotlib**.
+A Python-based personal expense tracking application built to record, manage, and visualize day-to-day spending.
 
-The project started as a basic Colab expense-tracking program and was cleaned up into a reusable Python application with CSV-based data persistence and spending visualization.
+## Overview
 
-## Features
+The application takes expense details from the user, validates the input, stores the records in a structured format, and provides basic spending analysis and visualization.
 
-- Add daily expenses
-- Store date, category, description, and amount
-- Save expenses to a CSV file
-- Load previously saved expenses when the program starts
-- View all recorded expenses
+The project focuses on practical Python programming, data handling, and visualization rather than a large framework-based application.
+
+## Key Features
+
+- Add and record expenses with date, category, description, and amount
+- Store expense records in CSV format
+- Load existing records when the application starts
+- Display recorded expenses
 - Calculate total spending
-- Visualize spending by category with a pie chart
-- Validate numeric expense amounts
+- Group expenses by category
+- Generate a category-wise pie chart
+- Validate expense amounts and handle invalid input
 
-## Tech Stack
+## Technologies Used
 
-- Python
-- Pandas
-- Matplotlib
-- CSV
+- **Python** — application logic and user interaction
+- **Pandas** — tabular data handling and analysis
+- **Matplotlib** — expense visualization
+- **CSV** — lightweight local data storage
 
 ## Project Structure
 
@@ -32,60 +36,64 @@ expense-tracker/
 └── README.md
 ```
 
-`expenses.csv` is generated automatically when you add your first expense and is intentionally ignored by Git because it contains personal spending data.
+The `expenses.csv` file is created locally when expenses are recorded. It is excluded from the repository because it can contain personal spending information.
 
-## Installation
+## How It Works
 
-Clone the repository and install the dependencies:
+```text
+Enter Expense
+     ↓
+Validate Input
+     ↓
+Create / Update DataFrame
+     ↓
+Save Records to CSV
+     ↓
+Analyze Spending
+     ↓
+Display Results & Chart
+```
+
+## Implementation
+
+The main application is written in Python using functions for the individual operations.
+
+The implementation includes:
+
+- User input handling and validation
+- Exception handling for invalid numeric values
+- Reading and writing CSV data
+- Pandas DataFrames for structured expense records
+- `groupby()` for category-wise spending analysis
+- Matplotlib for generating the spending chart
+- Local file persistence so records remain available between runs
+
+## Running the Project
+
+Install the required packages:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run
+Run the application:
 
 ```bash
 python expense_tracker.py
 ```
 
-## How It Works
-
-```text
-User Input
-    ↓
-Validate Expense
-    ↓
-Store in Pandas DataFrame
-    ↓
-Save to CSV
-    ↓
-View / Calculate / Visualize
-```
-
-## What This Project Demonstrates
-
-- Python functions and control flow
-- Input validation and exception handling
-- File handling with CSV
-- Pandas DataFrames
-- Data aggregation with `groupby()`
-- Basic data visualization with Matplotlib
-- Organizing a Python project for GitHub
-
 ## Future Improvements
 
-- Monthly spending summaries
-- Budget limits and alerts
+- Monthly and yearly spending summaries
+- Budget tracking and alerts
 - Date-based filtering
-- Expense editing and deletion
-- Bar charts and monthly trend analysis
-- A Streamlit web interface
-- Database storage with SQLite
+- Edit and delete expense records
+- Monthly spending trend charts
+- Streamlit interface
+- SQLite database support
 
 ## Author
 
 **Faqeeha Fathima**
 
 B.Tech Artificial Intelligence & Data Science
-
-Interests: Artificial Intelligence • Machine Learning • Data Science • Research
