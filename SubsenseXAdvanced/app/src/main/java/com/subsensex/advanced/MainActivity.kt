@@ -144,8 +144,8 @@ private class MineEngine {
         while(scoreHistory.size>30) scoreHistory.removeFirst()
         val temp=27.0+sin(tick/8.0)*0.8+random.nextDouble(-0.35,0.35)
         val humidity=(58.0+sin(tick/11.0)*4.0+random.nextDouble(-1.5,1.5)).coerceIn(35.0,85.0)
-        val packets=25+random.nextInt(0,12)
-        return Snapshot(nodes,risk,score,coherent/25.0,pattern,confidence,events.take(30),tick,events.size*25,online,scenario,nodes.map{it.battery}.average().toInt(),temp,humidity,packets,maxVel,maxVib,maxDev,scoreHistory.toList())
+        val packets=nodes.size
+        return Snapshot(nodes,risk,score,coherent/25.0,pattern,confidence,events.take(30),tick,0,online,scenario,nodes.map{it.battery}.average().toInt(),temp,humidity,packets,maxVel,maxVib,maxDev,scoreHistory.toList())
     }
 }
 
@@ -307,7 +307,7 @@ class MainActivity:ComponentActivity() {
         Row(Modifier.fillMaxWidth().padding(12.dp),Arrangement.SpaceBetween,Alignment.CenterVertically) {
             Column {
                 Text("LIVE TELEMETRY STREAM",fontWeight=FontWeight.ExtraBold,fontSize=14.sp)
-                Text("Simulator is generating fresh sensor packets every 1.5 seconds",fontSize=10.sp,color=GREY)
+                Text("Simulator generates one telemetry batch every 1.5 seconds",fontSize=10.sp,color=GREY)
             }
             Button(onClick=onToggle,contentPadding=PaddingValues(horizontal=12.dp,vertical=6.dp),colors=ButtonDefaults.buttonColors(containerColor=if(s.tick>0) GREEN else GREY)) {
                 Text(if(s.tick>0) "LIVE" else "START",fontSize=10.sp)
@@ -328,7 +328,7 @@ class MainActivity:ComponentActivity() {
             Row(Modifier.fillMaxWidth(),Arrangement.spacedBy(6.dp)) {
                 Metric("TEMP","%.1f°C".format(s.temperature),Modifier.weight(1f))
                 Metric("HUMID","%.1f%%".format(s.humidity),Modifier.weight(1f))
-                Metric("PACKETS","${s.packets}/s",Modifier.weight(1f))
+                Metric("PACKETS","${s.packets}/tick",Modifier.weight(1f))
             }
             Text("Last packet: ${SimpleDateFormat("HH:mm:ss",Locale.getDefault()).format(Date())}  •  sequence #${s.tick}",fontSize=10.sp,color=GREY)
         }
@@ -379,7 +379,7 @@ class MainActivity:ComponentActivity() {
         K("COHERENT",s.nodes.count{it.coherent}.toString(),GREEN, Modifier.weight(1f))
         K("SUSPECT",s.nodes.count{it.suspect}.toString(),PURPLE, Modifier.weight(1f))
         K("ACTIVE",s.alerts.count{!it.ack}.toString(),RED, Modifier.weight(1f))
-        K("QUEUE",s.unsynced.toString(),BLUE, Modifier.weight(1f))
+        K("FAULTS",s.nodes.count{it.suspect}.toString(),PURPLE, Modifier.weight(1f))
     }
 }
 
@@ -511,7 +511,7 @@ class MainActivity:ComponentActivity() {
 @Composable private fun SystemPage(s:Snapshot,onScenario:(Scenario)->Unit) {
     Stat("PROCESSING","ON DEVICE","Risk, alerts and simulation run locally")
     Stat("CONNECTIVITY",if(s.online)"AVAILABLE" else "OFFLINE","Core safety workflow remains active")
-    Stat("LOCAL QUEUE","${s.unsynced} RECORDS","Ready for store-and-forward sync architecture")
+    Stat("SYNC","NOT IMPLEMENTED","Telemetry is currently generated locally by the simulator")
     Stat("SOURCE","SIMULATOR / LoRa-ready","Telemetry interface can be replaced by gateway input")
     ScenarioCard(s,onScenario)
 }
