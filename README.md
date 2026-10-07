@@ -1,28 +1,24 @@
 # Expense Tracker
 
-A simple command-line expense tracker built with **Python, Pandas, and Matplotlib**.
-
-The project started as a basic Colab expense-tracking program and was cleaned up into a reusable Python application with CSV-based data persistence and spending visualization.
+A small command-line expense tracker built with Python.
 
 ## Features
 
-- Add daily expenses
-- Store date, category, description, and amount
+- Add expenses with a date, category, description, and amount
 - Save expenses to a CSV file
-- Load previously saved expenses when the program starts
-- View all recorded expenses
+- View saved expenses
 - Calculate total spending
-- Visualize spending by category with a pie chart
-- Validate numeric expense amounts
+- View spending by category as a pie chart
+- Validate expense amounts
 
-## Tech Stack
+## Technologies
 
 - Python
 - Pandas
 - Matplotlib
 - CSV
 
-## Project Structure
+## Files
 
 ```text
 expense-tracker/
@@ -32,60 +28,38 @@ expense-tracker/
 └── README.md
 ```
 
-`expenses.csv` is generated automatically when you add your first expense and is intentionally ignored by Git because it contains personal spending data.
+The `expenses.csv` file is created when expenses are saved. It is kept out of the repository because it contains personal expense data.
 
-## Installation
+## Running the project
 
-Clone the repository and install the dependencies:
+Install the required packages:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run
+Then run:
 
 ```bash
 python expense_tracker.py
 ```
 
-## How It Works
+## What I Practised
 
-```text
-User Input
-    ↓
-Validate Expense
-    ↓
-Store in Pandas DataFrame
-    ↓
-Save to CSV
-    ↓
-View / Calculate / Visualize
-```
+This project helped me practise Python functions, input validation, file handling, Pandas DataFrames, grouping data, and basic Matplotlib visualisation.
 
-## What This Project Demonstrates
+## Possible Improvements
 
-- Python functions and control flow
-- Input validation and exception handling
-- File handling with CSV
-- Pandas DataFrames
-- Data aggregation with `groupby()`
-- Basic data visualization with Matplotlib
-- Organizing a Python project for GitHub
-
-## Future Improvements
-
-- Monthly spending summaries
-- Budget limits and alerts
+- Monthly summaries
+- Budget limits
 - Date-based filtering
-- Expense editing and deletion
-- Bar charts and monthly trend analysis
-- A Streamlit web interface
-- Database storage with SQLite
+- Editing and deleting expenses
+- More charts
+- SQLite storage
+- A simple web interface
 
 ## Author
 
 **Faqeeha Fathima**
 
-B.Tech Artificial Intelligence & Data Science
-
-Interests: Artificial Intelligence • Machine Learning • Data Science • Research
+B.Tech AI & Data Science
