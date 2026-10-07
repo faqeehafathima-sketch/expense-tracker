@@ -1,99 +1,72 @@
-# Expense Tracker
+# SUBSENSE-X
 
-A Python-based personal expense tracking application built to record, manage, and visualize day-to-day spending.
+An Android prototype for monitoring underground mine subsidence using a local sensor-field simulation.
 
-## Overview
+## What it does
 
-The application takes expense details from the user, validates the input, stores the records in a structured format, and provides basic spending analysis and visualization.
+The current Android app demonstrates the software side of a mine-safety monitoring system:
 
-The project focuses on practical Python programming, data handling, and visualization rather than a large framework-based application.
+- Simulates a 5 × 5 field of surface sensor nodes
+- Generates deformation, velocity, crack, vibration, battery and RSSI readings
+- Calculates a transparent 0–100 ground-risk score
+- Looks for spatially coherent movement
+- Detects a simulated sensor fault and excludes it from ground-risk scoring
+- Shows a live sensor map, risk trend, telemetry, alerts and decision trace
+- Runs the core demo without an Internet connection
+- Uses Android local notifications for high-risk events
 
-## Key Features
+## Current status
 
-- Add and record expenses with date, category, description, and amount
-- Store expense records in CSV format
-- Load existing records when the application starts
-- Display recorded expenses
-- Calculate total spending
-- Group expenses by category
-- Generate a category-wise pie chart
-- Validate expense amounts and handle invalid input
+**Software prototype / simulator.**
 
-## Technologies Used
+The present version does **not** read real LoRa, Zigbee or physical sensor hardware. Telemetry is generated locally so the monitoring and alert workflow can be demonstrated before hardware integration.
 
-- **Python** — application logic and user interaction
-- **Pandas** — tabular data handling and analysis
-- **Matplotlib** — expense visualization
-- **CSV** — lightweight local data storage
+The risk score is a rule-based weighted score, not a trained machine-learning model. The displayed confidence value is an internal heuristic and should not be interpreted as statistical probability.
 
-## Project Structure
+## Android stack
 
-```text
-expense-tracker/
-├── expense_tracker.py
-├── requirements.txt
-├── .gitignore
-└── README.md
-```
+- Kotlin
+- Jetpack Compose
+- Material 3
+- Android SDK 35
+- Gradle
+- AndroidX Activity / Core
 
-The `expenses.csv` file is created locally when expenses are recorded. It is excluded from the repository because it can contain personal spending information.
-
-## How It Works
+## Project structure
 
 ```text
-Enter Expense
-     ↓
-Validate Input
-     ↓
-Create / Update DataFrame
-     ↓
-Save Records to CSV
-     ↓
-Analyze Spending
-     ↓
-Display Results & Chart
+SubsenseXAdvanced/
+└── app/
+    ├── src/main/
+    │   ├── java/com/subsensex/advanced/MainActivity.kt
+    │   ├── AndroidManifest.xml
+    │   └── res/
+    └── build.gradle.kts
+
+expense_tracker.py
+requirements.txt
 ```
 
-## Implementation
+The Python expense tracker is an earlier standalone learning project kept in the same repository. It is not part of the Android mine-monitoring app.
 
-The main application is written in Python using functions for the individual operations.
+## Run the Android prototype
 
-The implementation includes:
+Open the `SubsenseXAdvanced` directory in Android Studio, let Gradle sync, then run the `app` configuration on an Android device or emulator.
 
-- User input handling and validation
-- Exception handling for invalid numeric values
-- Reading and writing CSV data
-- Pandas DataFrames for structured expense records
-- `groupby()` for category-wise spending analysis
-- Matplotlib for generating the spending chart
-- Local file persistence so records remain available between runs
+The app starts with a local simulated telemetry stream. Use the scenario controls to demonstrate:
 
-## Running the Project
+- normal sensor behaviour
+- local deformation
+- progressive subsidence
+- sensor failure
 
-Install the required packages:
+## Important limitations
 
-```bash
-pip install -r requirements.txt
-```
+This prototype is intended for software demonstration and development. It is **not a certified mine-safety system** and should not be used for real operational safety decisions.
 
-Run the application:
-
-```bash
-python expense_tracker.py
-```
-
-## Future Improvements
-
-- Monthly and yearly spending summaries
-- Budget tracking and alerts
-- Date-based filtering
-- Edit and delete expense records
-- Monthly spending trend charts
-- Streamlit interface
-- SQLite database support
+Hardware integration, persistent telemetry storage, store-and-forward synchronization, field calibration and validation with real sensor data are future development work.
 
 ## Author
 
-**Faqeeha Fathima**
-
+**Faqeeha Fathima**  
 B.Tech Artificial Intelligence & Data Science
